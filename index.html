@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<title>Untis Planer</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <div class="marke">
+    <b>Untis Planer</b>
+    <span class="dim" id="kopfStand">wird geladen …</span>
+  </div>
+  <nav class="tabs">
+    <button data-view="termine" class="active">Termine</button>
+    <button data-view="stundenplan">Stundenplan</button>
+    <button data-view="zugang">Zugang</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ---------------- Termine ---------------- -->
+  <section id="view-termine" class="view active">
+    <div class="leiste">
+      <label class="schalter"><input type="checkbox" id="fErledigte"> Erledigte zeigen</label>
+      <button id="bNeu" class="klein">+ Eigener Termin</button>
+      <button id="bNeuladen" class="klein geist">Neu laden</button>
+    </div>
+    <div id="terminListe"></div>
+  </section>
+
+  <!-- ---------------- Stundenplan ---------------- -->
+  <section id="view-stundenplan" class="view">
+    <div class="leiste">
+      <button id="bWocheZurueck" class="klein geist">‹ Woche</button>
+      <span id="spWoche" class="wochentitel"></span>
+      <button id="bWocheVor" class="klein geist">Woche ›</button>
+      <span class="dim" id="spHinweis"></span>
+    </div>
+    <div id="spGrid"></div>
+    <div class="legende">
+      <span><i class="pkt entfall"></i> Entfall</span>
+      <span><i class="pkt vertretung"></i> Vertretung</span>
+      <span><i class="pkt pruefung"></i> Test / Schularbeit</span>
+      <span><i class="pkt notiz"></i> Notiz</span>
+    </div>
+  </section>
+
+  <!-- ---------------- Zugang ---------------- -->
+  <section id="view-zugang" class="view">
+    <div class="karte">
+      <h2>Zugang</h2>
+      <p class="dim">
+        Diese Seite hat keine eigenen Daten. Sie liest deinen privaten Datenbestand
+        direkt bei GitHub – dafür braucht sie ein Token, das nur in diesem Browser
+        gespeichert wird und nirgendwo sonst hingeht.
+      </p>
+      <label for="fRepo">Daten-Repository</label>
+      <input id="fRepo" type="text" spellcheck="false" placeholder="benutzer/untis-planer-daten">
+      <label for="fToken">Token</label>
+      <input id="fToken" type="password" spellcheck="false" placeholder="github_pat_…">
+      <div class="knopfzeile">
+        <button id="bVerbinden">Verbinden</button>
+        <button id="bVergessen" class="geist">Token löschen</button>
+      </div>
+      <div id="zugangStatus"></div>
+
+      <details class="hilfe">
+        <summary>Wie erstelle ich das Token?</summary>
+        <ol>
+          <li>Auf github.com: <b>Settings</b> → <b>Developer settings</b> →
+              <b>Personal access tokens</b> → <b>Fine-grained tokens</b> → <b>Generate new token</b></li>
+          <li><b>Repository access</b>: <i>Only select repositories</i> → dein Daten-Repository</li>
+          <li><b>Permissions</b> → <b>Repository permissions</b> → <b>Contents</b>: <i>Read and write</i></li>
+          <li>Ablaufdatum setzen, erzeugen, hier einfügen</li>
+        </ol>
+        <p class="dim">Mehr Rechte braucht die Seite nicht. Das Token gilt nur für dieses eine Repository.</p>
+      </details>
+    </div>
+  </section>
+
+</main>
+
+<!-- Dialog -->
+<div id="overlay" class="overlay">
+  <div class="dialog">
+    <div class="dialogkopf">
+      <h3 id="mTitel"></h3>
+      <button id="mZu" class="ikone">✕</button>
+    </div>
+    <div id="mInhalt"></div>
+    <div class="dialogfuss">
+      <button id="mLoeschen" class="gefahr" hidden>Löschen</button>
+      <span class="wachs"></span>
+      <button id="mAbbruch" class="geist">Schließen</button>
+      <button id="mSpeichern" hidden>Speichern</button>
+    </div>
+  </div>
+</div>
+
+<div id="flash"></div>
+
+<script src="app.js"></script>
+</body>
+</html>

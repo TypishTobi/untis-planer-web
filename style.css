@@ -1,0 +1,190 @@
+/* Untis Planer - Weboberflaeche
+   Dunkel als Grundton, hell wenn das Geraet es so will. */
+
+:root {
+  --bg: #16181d;
+  --bg2: #1d2027;
+  --bg3: #23272f;
+  --rand: #2f343d;
+  --fg: #e8eaee;
+  --fg-dim: #9aa2af;
+  --akzent: #4c8dff;
+  --gefahr: #e5484d;
+  --gut: #2ba360;
+  --radius: 10px;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #f4f5f7; --bg2: #ffffff; --bg3: #eef0f4; --rand: #d9dde4;
+    --fg: #1b1e24; --fg-dim: #5d6673;
+  }
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 14px/1.45 -apple-system, "Segoe UI", Roboto, system-ui, sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+button, input, textarea, select { font: inherit; color: inherit; }
+.dim { color: var(--fg-dim); }
+.wachs { flex: 1; }
+
+/* ---------- Kopf ---------- */
+header {
+  position: sticky; top: 0; z-index: 20;
+  background: var(--bg2); border-bottom: 1px solid var(--rand);
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+  display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center;
+}
+.marke { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.marke b { font-size: 16px; }
+.marke .dim { font-size: 12px; }
+.tabs { display: flex; gap: 6px; margin-left: auto; }
+.tabs button {
+  background: transparent; border: 1px solid transparent; color: var(--fg-dim);
+  padding: 7px 14px; border-radius: 999px; cursor: pointer;
+}
+.tabs button.active { background: var(--bg3); border-color: var(--rand); color: var(--fg); }
+
+main { padding: 16px; max-width: 1200px; margin: 0 auto; }
+.view { display: none; }
+.view.active { display: block; }
+
+/* ---------- Knoepfe ---------- */
+button {
+  background: var(--akzent); border: 1px solid transparent; color: #fff;
+  padding: 9px 16px; border-radius: var(--radius); cursor: pointer;
+}
+button:hover { filter: brightness(1.08); }
+button.geist { background: transparent; border-color: var(--rand); color: var(--fg); }
+button.gefahr { background: var(--gefahr); }
+button.klein { padding: 6px 12px; font-size: 13px; }
+button.ikone { background: transparent; border: 0; color: var(--fg-dim); padding: 4px 8px; font-size: 16px; }
+button:disabled { opacity: .5; cursor: default; }
+
+.leiste { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
+.schalter { display: inline-flex; gap: 7px; align-items: center; color: var(--fg-dim); }
+.wochentitel { font-weight: 600; min-width: 190px; text-align: center; }
+
+/* ---------- Karten und Formularfelder ---------- */
+.karte {
+  background: var(--bg2); border: 1px solid var(--rand); border-radius: var(--radius);
+  padding: 18px; max-width: 620px;
+}
+.karte h2 { margin: 0 0 10px; font-size: 17px; }
+label { display: block; margin: 14px 0 5px; color: var(--fg-dim); font-size: 13px; }
+input[type=text], input[type=password], input[type=date], input[type=time], textarea, select {
+  width: 100%; background: var(--bg3); border: 1px solid var(--rand);
+  border-radius: 8px; padding: 9px 11px;
+}
+textarea { min-height: 96px; resize: vertical; }
+.knopfzeile { display: flex; gap: 10px; margin-top: 16px; }
+.hilfe { margin-top: 18px; border-top: 1px solid var(--rand); padding-top: 12px; }
+.hilfe summary { cursor: pointer; color: var(--akzent); }
+.hilfe ol { padding-left: 20px; }
+.meldung { margin-top: 14px; padding: 10px 12px; border-radius: 8px; background: var(--bg3); }
+.meldung.gut { background: color-mix(in srgb, var(--gut) 18%, transparent); }
+.meldung.schlecht { background: color-mix(in srgb, var(--gefahr) 18%, transparent); }
+
+/* ---------- Terminliste ---------- */
+.taggruppe { margin-bottom: 18px; }
+.tagkopf { display: flex; align-items: baseline; gap: 10px; margin: 0 2px 7px; }
+.tagkopf b { font-size: 14px; }
+.tagkopf.heute b { color: var(--akzent); }
+.termin {
+  display: flex; gap: 12px; align-items: flex-start;
+  background: var(--bg2); border: 1px solid var(--rand); border-left: 4px solid var(--cat, var(--akzent));
+  border-radius: var(--radius); padding: 11px 13px; margin-bottom: 8px; cursor: pointer;
+}
+.termin:hover { background: var(--bg3); }
+.termin.erledigt { opacity: .5; }
+.termin .titel { font-weight: 600; }
+.termin .unten { color: var(--fg-dim); font-size: 12.5px; margin-top: 3px; }
+.termin .notiz { margin-top: 6px; font-size: 13px; background: var(--bg3); border-radius: 6px; padding: 6px 8px; white-space: pre-wrap; }
+.haken { margin-top: 2px; }
+
+/* ---------- Stundenplan ---------- */
+#spGrid { overflow-x: auto; }
+.sp-grid {
+  display: grid; position: relative; gap: 4px; min-width: 620px;
+  background: var(--bg2); border: 1px solid var(--rand); border-radius: var(--radius); padding: 8px;
+}
+.sp-kopf { padding: 6px 4px; text-align: center; border-bottom: 1px solid var(--rand); }
+.sp-kopf .wd { color: var(--fg-dim); font-size: 12px; }
+.sp-kopf.heute { color: var(--akzent); font-weight: 600; }
+.sp-zeit { color: var(--fg-dim); font-size: 11px; text-align: right; padding: 4px 6px 0 0; white-space: nowrap; }
+.sp-stunde {
+  background: var(--bg3); border: 1px solid var(--rand); border-radius: 8px;
+  padding: 5px 7px; font-size: 12.5px; overflow: hidden; cursor: pointer;
+}
+.sp-stunde .f { font-weight: 600; }
+.sp-stunde .n { color: var(--fg-dim); font-size: 11px; }
+.sp-stunde.entfall { opacity: .55; text-decoration: line-through; }
+.sp-stunde.vertretung { border-color: #c98a2b; }
+.sp-stunde.pruefung { border-color: var(--gefahr); }
+.sp-stunde.hat-termin { box-shadow: inset 3px 0 0 var(--tcat, var(--akzent)); }
+.sp-stunde.hat-notiz { outline: 1px dashed color-mix(in srgb, var(--akzent) 60%, transparent); outline-offset: -3px; }
+.sp-termin {
+  margin-top: 4px; font-size: 11px; border-radius: 5px; padding: 2px 5px;
+  background: color-mix(in srgb, var(--cat, var(--akzent)) 22%, transparent);
+  border-left: 3px solid var(--cat, var(--akzent));
+}
+.sp-notiz {
+  margin-top: 4px; font-size: 11px; color: var(--fg-dim);
+  background: color-mix(in srgb, var(--akzent) 12%, transparent); border-radius: 5px; padding: 2px 5px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.sp-block {
+  background: color-mix(in srgb, var(--cat, var(--akzent)) 20%, var(--bg3));
+  border: 1px solid var(--cat, var(--akzent)); border-radius: 8px; padding: 5px 7px; font-size: 12.5px;
+  cursor: pointer;
+}
+.sp-jetzt { position: absolute; height: 0; border-top: 2px solid var(--gefahr); pointer-events: none; z-index: 5; }
+.sp-jetzt-heute { position: absolute; top: -1px; height: 2px; background: var(--gefahr); }
+.sp-jetzt-zeit {
+  position: absolute; left: -44px; top: -9px; font-size: 10px; font-weight: 600;
+  background: var(--gefahr); color: #fff; border-radius: 4px; padding: 1px 4px;
+}
+.legende { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 12px; color: var(--fg-dim); font-size: 12px; }
+.pkt { display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 5px; }
+.pkt.entfall { background: var(--fg-dim); }
+.pkt.vertretung { background: #c98a2b; }
+.pkt.pruefung { background: var(--gefahr); }
+.pkt.notiz { background: var(--akzent); }
+
+/* ---------- Dialog ---------- */
+.overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 40;
+  display: none; align-items: center; justify-content: center; padding: 16px;
+}
+.overlay.offen { display: flex; }
+.dialog {
+  background: var(--bg2); border: 1px solid var(--rand); border-radius: 14px;
+  width: min(560px, 100%); max-height: 88vh; overflow: auto;
+}
+.dialogkopf { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--rand); }
+.dialogkopf h3 { margin: 0; font-size: 16px; flex: 1; }
+#mInhalt { padding: 16px; }
+.dialogfuss { display: flex; gap: 10px; padding: 14px 16px; border-top: 1px solid var(--rand); }
+dl.feld { display: grid; grid-template-columns: auto 1fr; gap: 5px 14px; margin: 0 0 12px; }
+dl.feld dt { color: var(--fg-dim); }
+dl.feld dd { margin: 0; }
+
+/* ---------- Meldungen ---------- */
+#flash { position: fixed; right: 14px; bottom: 14px; z-index: 60; display: flex; flex-direction: column; gap: 8px; }
+.blase {
+  background: var(--bg3); border: 1px solid var(--rand); border-radius: 8px;
+  padding: 9px 13px; box-shadow: 0 6px 20px rgba(0,0,0,.35); max-width: 320px;
+}
+.blase.gut { border-color: var(--gut); }
+.blase.schlecht { border-color: var(--gefahr); }
+
+@media (max-width: 640px) {
+  main { padding: 12px; }
+  .tabs { width: 100%; margin-left: 0; }
+  .tabs button { flex: 1; padding: 8px 6px; font-size: 13px; }
+  .wochentitel { min-width: 0; flex: 1; font-size: 13px; }
+}
