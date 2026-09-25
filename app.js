@@ -213,6 +213,7 @@ function termineListe() {
       bis: eigen ? (eigen.endTime || '') : t.bis,
       lehrkraft: t.lehrkraft,
       raum: t.raum,
+      klasse: t.klasse || '',
       text: t.text,
       notiz: zusatz.notes !== undefined ? zusatz.notes : (eigen ? eigen.notes : t.notiz),
       erledigt: zusatz.done !== undefined ? !!zusatz.done : !!t.erledigt,
@@ -307,6 +308,7 @@ function zeigeTermin(id) {
     ${t.fach ? `<dt>Fach</dt><dd>${esc(t.fach)}</dd>` : ''}
     ${t.raum ? `<dt>Raum</dt><dd>${esc(t.raum)}</dd>` : ''}
     ${t.lehrkraft ? `<dt>Lehrkraft</dt><dd>${esc(t.lehrkraft)}</dd>` : ''}
+    ${t.klasse ? `<dt>Klasse</dt><dd>${esc(t.klasse)}${fremdeKlasse(t) ? ' <b style="color:#c98a2b">· nicht deine Klasse</b>' : ''}</dd>` : ''}
     ${t.text ? `<dt>Aus Untis</dt><dd>${esc(t.text)}</dd>` : ''}
   </dl>`;
 
@@ -351,6 +353,27 @@ function zeigeNeuerTermin() {
   $('#mSpeichern').hidden = false;
   $('#mLoeschen').hidden = true;
   $('#overlay').classList.add('offen');
+}
+
+/* Zu welchen Klassen gehöre ich? Aus dem Stundenplan. Gebraucht wird das, um
+   eine Prüfung zu erkennen, die WebUntis einer fremden Klasse zuordnet - etwa
+   wenn eine Lehrkraft die falsche Schülerliste angehängt hat. */
+function meineKlassen() {
+  const raus = new Set();
+  const wochen = (daten && daten.stundenplan && daten.stundenplan.wochen) || {};
+  for (const stunden of Object.values(wochen)) {
+    for (const s of stunden || []) {
+      String(s.klasse || '').split(/[,;\s]+/).forEach(k => { if (k) raus.add(k); });
+    }
+  }
+  return raus;
+}
+
+function fremdeKlasse(t) {
+  if (!t || !t.klasse) return false;
+  const meine = meineKlassen();
+  if (!meine.size) return false;
+  return !String(t.klasse).split(/[,;\s]+/).some(k => k && meine.has(k));
 }
 
 /* ---------------- Dialog: Stunde ---------------- */
