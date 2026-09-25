@@ -587,17 +587,24 @@ function zeichneStundenplan() {
     if (d < spWoche || d > ende) continue;
     if (e.eigener && e.von && e.bis && minuten(e.bis) > minuten(e.von)) continue;   // eigener Block
     const tag = Math.round((d - spWoche) / 86400000);
-    let gelegt = false;
+    const amTag = stunden.filter(s => s.datum === e.datum);
+
+    // Erst über die Uhrzeit, dann über das Fach. Eine Hausübung hat keine
+    // Uhrzeit, gehört aber trotzdem in ihre Stunde und nicht über den Tag.
+    let ziel = null;
     if (e.von) {
-      const passend = stunden.find(s => s.datum === e.datum &&
-        minuten(e.von) >= minuten(s.von) && minuten(e.von) < minuten(s.bis));
-      if (passend) {
-        if (!anStunde.has(passend.id)) anStunde.set(passend.id, []);
-        anStunde.get(passend.id).push(e);
-        gelegt = true;
-      }
+      ziel = amTag.find(s => minuten(e.von) >= minuten(s.von) && minuten(e.von) < minuten(s.bis));
     }
-    if (!gelegt) {
+    if (!ziel && e.fach) {
+      const gesucht = String(e.fach).toLowerCase();
+      ziel = amTag.find(s => (s.fach || '').toLowerCase() === gesucht)
+          || amTag.find(s => (s.fachLang || '').toLowerCase() === gesucht);
+    }
+
+    if (ziel) {
+      if (!anStunde.has(ziel.id)) anStunde.set(ziel.id, []);
+      anStunde.get(ziel.id).push(e);
+    } else {
       if (!amTagOben.has(tag)) amTagOben.set(tag, []);
       amTagOben.get(tag).push(e);
     }
