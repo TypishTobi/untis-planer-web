@@ -616,12 +616,17 @@ function zeichneStundenplan() {
   }
 
   const heute = heuteIso();
+  // Was ersetzt wurde, wird durchgestrichen und das Neue danebengestellt - wie in WebUntis
+  const ersetzt = (neu, alt) => (alt && alt !== neu)
+    ? `<s>${esc(alt)}</s> ${esc(neu)}`
+    : esc(neu || '');
+
   let html = `<div class="sp-grid" style="grid-template-columns:${spalten.join(' ')}">`;
   html += '<div></div>';
   for (let t = 0; t < tage; t++) {
     const d = new Date(spWoche.getFullYear(), spWoche.getMonth(), spWoche.getDate() + t);
     const iso = toIso(d);
-    html += `<div class="sp-kopf${iso === heute ? ' heute' : ''}" style="grid-column:${spalteVon[t]}/span ${spuren[t]}">
+    html += `<div class="sp-kopf${iso === heute ? ' heute' : ''}${iso < heute ? ' vergangen' : ''}" style="grid-column:${spalteVon[t]}/span ${spuren[t]}">
       <div class="wd">${WD[d.getDay()]}</div>${d.getDate()}.${d.getMonth() + 1}.
       ${(amTagOben.get(t) || []).map(e =>
         `<div class="sp-termin" style="--cat:${farbeVon(e.art)}">${esc(e.titel)}</div>`).join('')}
@@ -651,6 +656,7 @@ function zeichneStundenplan() {
 
   for (let t = 0; t < tage; t++) {
     const datum = toIso(new Date(spWoche.getFullYear(), spWoche.getMonth(), spWoche.getDate() + t));
+    const vorbei = datum < heute;
 
     for (const s of stunden.filter(x => x.datum === datum)) {
       const spur = lage.get('s' + s.id) || 0;
@@ -663,12 +669,14 @@ function zeichneStundenplan() {
       if (dran.some(e => farbeVon(e.art) === '#e5484d')) klassen.push('pruefung');
       if (dran.length) klassen.push('hat-termin');
       if (notiz) klassen.push('hat-notiz');
+      if (vorbei) klassen.push('vergangen');
 
       html += `<div class="${klassen.join(' ')}" data-stunde="${esc(s.id)}"
           style="grid-column:${spalteVon[t] + spur}; grid-row:${zeileVon(s.von)}/${zeileBis(s.bis)}
                  ${wichtig ? `;--tcat:${farbeVon(wichtig.art)}` : ''}">
         <div class="f">${esc(s.fach || s.fachLang || '')}</div>
-        <div class="n">${esc([s.raum, s.lehrer].filter(Boolean).join(' · '))}</div>
+        <div class="n">${[ersetzt(s.raum, s.raumOrg), ersetzt(s.lehrer, s.lehrerOrg)].filter(Boolean).join(' · ')}</div>
+        ${s.vertretung ? `<div class="n">${esc(s.vertretung)}</div>` : ''}
         ${dran.map(e => `<div class="sp-termin" style="--cat:${farbeVon(e.art)}">${esc(e.titel)}</div>`).join('')}
         ${notiz ? `<div class="sp-notiz">✎ ${esc(notiz.notiz)}</div>` : ''}
       </div>`;
@@ -676,7 +684,7 @@ function zeichneStundenplan() {
 
     for (const b of bloecke.filter(x => x.datum === datum)) {
       const spur = lage.get('b' + b.id) || 0;
-      html += `<div class="sp-block" data-termin="${esc(b.id)}"
+      html += `<div class="sp-block${vorbei ? ' vergangen' : ''}" data-termin="${esc(b.id)}"
           style="grid-column:${spalteVon[t] + spur}; grid-row:${zeileVon(b.von)}/${zeileBis(b.bis)}; --cat:${farbeVon(b.art)}">
         <div class="f">${esc(b.titel)}</div>
         <div class="n">${esc(b.von)}–${esc(b.bis)}</div>
