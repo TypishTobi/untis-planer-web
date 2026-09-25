@@ -15,20 +15,24 @@
     <span class="dim" id="kopfStand">wird geladen …</span>
   </div>
   <nav class="tabs">
-    <button data-view="termine" class="active">Termine</button>
+    <button data-view="uebersicht" class="active">Übersicht</button>
     <button data-view="stundenplan">Stundenplan</button>
+    <button data-view="kalender">Kalender</button>
     <button data-view="zugang">Zugang</button>
   </nav>
+  <div class="kopfknoepfe">
+    <button id="bNeu" class="klein geist">+ Termin</button>
+    <button id="bNeuladen" class="klein">Aktualisieren</button>
+  </div>
 </header>
 
 <main>
 
-  <!-- ---------------- Termine ---------------- -->
-  <section id="view-termine" class="view active">
+  <!-- ---------------- Übersicht ---------------- -->
+  <section id="view-uebersicht" class="view active">
     <div class="leiste">
       <label class="schalter"><input type="checkbox" id="fErledigte"> Erledigte zeigen</label>
-      <button id="bNeu" class="klein">+ Eigener Termin</button>
-      <button id="bNeuladen" class="klein geist">Neu laden</button>
+      <label class="schalter"><input type="checkbox" id="fNurWichtige"> Nur wichtige</label>
     </div>
     <div id="terminListe"></div>
   </section>
@@ -39,6 +43,7 @@
       <button id="bWocheZurueck" class="klein geist">‹ Woche</button>
       <span id="spWoche" class="wochentitel"></span>
       <button id="bWocheVor" class="klein geist">Woche ›</button>
+      <button id="bHeute" class="klein geist">Heute</button>
       <span class="dim" id="spHinweis"></span>
     </div>
     <div id="spGrid"></div>
@@ -47,6 +52,24 @@
       <span><i class="pkt vertretung"></i> Vertretung</span>
       <span><i class="pkt pruefung"></i> Test / Schularbeit</span>
       <span><i class="pkt notiz"></i> Notiz</span>
+    </div>
+  </section>
+
+  <!-- ---------------- Kalender ---------------- -->
+  <section id="view-kalender" class="view">
+    <div class="zweispaltig">
+      <div class="karte breit">
+        <div class="leiste">
+          <button id="bMonatZurueck" class="klein geist">‹</button>
+          <span id="calMonat" class="wochentitel"></span>
+          <button id="bMonatVor" class="klein geist">›</button>
+        </div>
+        <div id="calGrid" class="cal"></div>
+      </div>
+      <div class="karte">
+        <h2 id="tagTitel">Tag auswählen</h2>
+        <div id="tagListe"></div>
+      </div>
     </div>
   </section>
 
@@ -75,7 +98,7 @@
           <li>Auf github.com: <b>Settings</b> → <b>Developer settings</b> →
               <b>Personal access tokens</b> → <b>Fine-grained tokens</b> → <b>Generate new token</b></li>
           <li><b>Repository access</b>: <i>Only select repositories</i> → dein Daten-Repository</li>
-          <li><b>Permissions</b> → <b>Repository permissions</b> → <b>Contents</b>: <i>Read and write</i></li>
+          <li><b>Permissions</b> → <b>Add permissions</b> → <b>Contents</b> auf <i>Read and write</i></li>
           <li>Ablaufdatum setzen, erzeugen, hier einfügen</li>
         </ol>
         <p class="dim">Mehr Rechte braucht die Seite nicht. Das Token gilt nur für dieses eine Repository.</p>

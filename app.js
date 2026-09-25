@@ -42,6 +42,8 @@ let daten   = null;    // Untis-Termine.json vom Zweig 'handy'
 let nutzer  = null;    // userdata.json vom Zweig 'main'
 let nutzerSha = '';
 let spWoche = null;    // Montag der angezeigten Woche
+let calMonat = null;   // erster Tag des angezeigten Monats
+let gewaehlterTag = null;
 let offen   = null;    // was gerade im Dialog steht
 
 /* ---------------- Kleinkram ---------------- */
@@ -215,6 +217,7 @@ function termineListe() {
       notiz: zusatz.notes !== undefined ? zusatz.notes : (eigen ? eigen.notes : t.notiz),
       erledigt: zusatz.done !== undefined ? !!zusatz.done : !!t.erledigt,
       versteckt: !!zusatz.hidden,
+      wichtig: !!t.wichtig || !!t.eigener,
       eigener: !!t.eigener || !!eigen
     };
   }).filter(t => !t.versteckt);
@@ -222,10 +225,12 @@ function termineListe() {
 
 function zeichneTermine() {
   const zeigeErledigte = $('#fErledigte').checked;
+  const nurWichtige = $('#fNurWichtige').checked;
   const heute = heuteIso();
   const liste = termineListe()
     .filter(t => t.datum >= heute)
     .filter(t => zeigeErledigte || !t.erledigt)
+    .filter(t => !nurWichtige || t.wichtig)
     .sort((a, b) => (a.datum + (a.von || '')).localeCompare(b.datum + (b.von || '')));
 
   if (!liste.length) {
@@ -734,10 +739,82 @@ function zeichneJetztLinie() {
   heute.style.width = kopf.offsetWidth + 'px';
 }
 
+/* ---------------- Kalender ---------------- */
+
+function zeichneKalender() {
+  if (!calMonat) calMonat = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  const jahr = calMonat.getFullYear(), monat = calMonat.getMonth();
+  $('#calMonat').textContent = `${MON[monat]} ${jahr}`;
+
+  const erster = new Date(jahr, monat, 1);
+  const start = new Date(erster);
+  start.setDate(1 - ((erster.getDay() + 6) % 7));     // die Woche beginnt am Montag
+
+  const nurWichtige = $('#fNurWichtige').checked;
+  const proTag = new Map();
+  for (const t of termineListe()) {
+    if (nurWichtige && !t.wichtig) continue;
+    if (!proTag.has(t.datum)) proTag.set(t.datum, []);
+    proTag.get(t.datum).push(t);
+  }
+
+  const heute = heuteIso();
+  let html = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map(d => `<div class="wd">${d}</div>`).join('');
+
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(start); d.setDate(start.getDate() + i);
+    const tagIso = toIso(d);
+    const klassen = ['cal-zelle'];
+    if (d.getMonth() !== monat) klassen.push('fremd');
+    if (d.getDay() === 0 || d.getDay() === 6) klassen.push('wochenende');
+    if (tagIso === heute) klassen.push('heute');
+    if (tagIso === gewaehlterTag) klassen.push('gewaehlt');
+
+    const liste = (proTag.get(tagIso) || [])
+      .sort((a, b) => String(a.von || '').localeCompare(String(b.von || '')));
+    const sichtbar = liste.slice(0, 3).map(t =>
+      `<div class="cal-ev" style="--cat:${farbeVon(t.art)}${t.erledigt ? ';opacity:.45;text-decoration:line-through' : ''}">${esc(t.fach || t.titel)}</div>`).join('');
+    const mehr = liste.length > 3 ? `<div class="cal-mehr">+${liste.length - 3} weitere</div>` : '';
+
+    html += `<div class="${klassen.join(' ')}" data-tag="${tagIso}"><span class="n">${d.getDate()}</span>${sichtbar}${mehr}</div>`;
+  }
+  $('#calGrid').innerHTML = html;
+  $$('#calGrid .cal-zelle').forEach(el => el.addEventListener('click', () => {
+    gewaehlterTag = el.dataset.tag;
+    zeichneKalender();
+  }));
+  zeichneTag();
+}
+
+function zeichneTag() {
+  if (!gewaehlterTag) {
+    $('#tagTitel').textContent = 'Tag auswählen';
+    $('#tagListe').innerHTML = '<div class="leer">Klick im Kalender auf einen Tag.</div>';
+    return;
+  }
+  $('#tagTitel').textContent = langesDatum(gewaehlterTag);
+  const liste = termineListe()
+    .filter(t => t.datum === gewaehlterTag)
+    .sort((a, b) => String(a.von || '').localeCompare(String(b.von || '')));
+
+  $('#tagListe').innerHTML = liste.length
+    ? liste.map(t => `<div class="termin${t.erledigt ? ' erledigt' : ''}" style="--cat:${farbeVon(t.art)}" data-id="${esc(t.id)}">
+        <div style="flex:1">
+          <div class="titel">${esc(t.titel)}</div>
+          <div class="unten">${esc(t.art)}${t.von ? ' · ' + esc(t.von) : ''}</div>
+          ${t.notiz ? `<div class="notiz">${esc(t.notiz)}</div>` : ''}
+        </div></div>`).join('')
+    : '<div class="leer">Nichts an diesem Tag.</div>';
+
+  $$('#tagListe .termin').forEach(el =>
+    el.addEventListener('click', () => zeigeTermin(el.dataset.id)));
+}
+
 /* ---------------- Ansichten ---------------- */
 
 function zeichneAlles() {
   zeichneTermine();
+  zeichneKalender();
   if (spWoche) zeichneStundenplan();
 }
 
@@ -777,7 +854,7 @@ async function verbinden() {
   if (daten) {
     $('#zugangStatus').innerHTML = '<div class="meldung gut">Verbunden.</div>';
     $('#fToken').value = '';
-    zeigeAnsicht('termine');
+    zeigeAnsicht('uebersicht');
   } else {
     $('#zugangStatus').innerHTML = '<div class="meldung schlecht">Das hat nicht geklappt – siehe Meldung unten rechts.</div>';
   }
@@ -791,6 +868,8 @@ function vergessen() {
   $('#zugangStatus').innerHTML = '<div class="meldung">Token gelöscht. Diese Seite zeigt jetzt nichts mehr an.</div>';
   $('#terminListe').innerHTML = '';
   $('#spGrid').innerHTML = '';
+  $('#calGrid').innerHTML = '';
+  $('#tagListe').innerHTML = '';
   $('#kopfStand').textContent = 'kein Zugang';
 }
 
@@ -803,6 +882,10 @@ function verdrahten() {
   $('#bNeuladen').addEventListener('click', () => ladeAlles(false));
   $('#bNeu').addEventListener('click', zeigeNeuerTermin);
   $('#fErledigte').addEventListener('change', zeichneTermine);
+  $('#fNurWichtige').addEventListener('change', () => { zeichneTermine(); zeichneKalender(); });
+  $('#bMonatZurueck').addEventListener('click', () => { calMonat.setMonth(calMonat.getMonth() - 1); zeichneKalender(); });
+  $('#bMonatVor').addEventListener('click', () => { calMonat.setMonth(calMonat.getMonth() + 1); zeichneKalender(); });
+  $('#bHeute').addEventListener('click', () => { spWoche = montagVon(new Date()); zeichneStundenplan(); });
   $('#mZu').addEventListener('click', schliesseDialog);
   $('#mAbbruch').addEventListener('click', schliesseDialog);
   $('#mSpeichern').addEventListener('click', speichern);
@@ -825,6 +908,8 @@ function verdrahten() {
   });
 }
 
+gewaehlterTag = heuteIso();
+calMonat = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 verdrahten();
 ladeZugang();
 if (zugang.repo && zugang.token) ladeAlles(true); else zeigeAnsicht('zugang');
