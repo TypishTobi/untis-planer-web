@@ -828,11 +828,12 @@ function zeigeAnsicht(name) {
 
 function ladeZugang() {
   try {
-    zugang.repo  = localStorage.getItem('up.repo') || '';
-    zugang.token = localStorage.getItem('up.token') || '';
+    zugang.repo  = localStorage.getItem('up.repo') || sessionStorage.getItem('up.repo') || '';
+    zugang.token = localStorage.getItem('up.token') || sessionStorage.getItem('up.token') || '';
+    $('#fMerken').checked = !sessionStorage.getItem('up.token');
   } catch (e) { /* privater Modus: dann eben ohne Merken */ }
   $('#fRepo').value = zugang.repo;
-  $('#fToken').value = zugang.token ? '' : '';
+  $('#fToken').value = '';
   if (zugang.token) {
     $('#zugangStatus').innerHTML = '<div class="meldung gut">Token ist in diesem Browser hinterlegt.</div>';
   }
@@ -845,9 +846,13 @@ async function verbinden() {
   zugang.repo = repo;
   if (token) zugang.token = token;
   if (!zugang.token) { $('#zugangStatus').innerHTML = '<div class="meldung schlecht">Es fehlt noch das Token.</div>'; return; }
+  // Merken heisst: bleibt auf dem Geraet. Sonst nur bis der Tab zugeht.
   try {
-    localStorage.setItem('up.repo', zugang.repo);
-    localStorage.setItem('up.token', zugang.token);
+    const speicher = $('#fMerken').checked ? localStorage : sessionStorage;
+    const anderer  = $('#fMerken').checked ? sessionStorage : localStorage;
+    anderer.removeItem('up.repo'); anderer.removeItem('up.token');
+    speicher.setItem('up.repo', zugang.repo);
+    speicher.setItem('up.token', zugang.token);
   } catch (e) { /* ohne Merken weiter */ }
   $('#zugangStatus').innerHTML = '<div class="meldung">Verbinde …</div>';
   await ladeAlles(true);
@@ -861,7 +866,10 @@ async function verbinden() {
 }
 
 function vergessen() {
-  try { localStorage.removeItem('up.token'); } catch (e) { /* egal */ }
+  try {
+    localStorage.removeItem('up.token');
+    sessionStorage.removeItem('up.token');
+  } catch (e) { /* egal */ }
   zugang.token = '';
   daten = null; nutzer = null;
   $('#fToken').value = '';

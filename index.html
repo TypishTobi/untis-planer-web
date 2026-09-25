@@ -4,6 +4,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="dark light">
+
+<!-- Nicht in Suchmaschinen auftauchen. Die Seite ist zwangslaeufig oeffentlich
+     erreichbar (GitHub Pages), soll aber niemandem zufaellig begegnen. -->
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="referrer" content="no-referrer">
+
+<!-- Riegel gegen eingeschleusten Code: Es laeuft nur Javascript aus diesem
+     Verzeichnis, und Verbindungen gehen ausschliesslich zur GitHub-API.
+     Waere je ein fremdes Skript in der Seite, koennte es das Token weder
+     ausfuehren noch irgendwohin schicken. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src https://api.github.com; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
+
 <title>Untis Planer</title>
 <link rel="stylesheet" href="style.css">
 </head>
@@ -86,6 +98,13 @@
       <input id="fRepo" type="text" spellcheck="false" placeholder="benutzer/untis-planer-daten">
       <label for="fToken">Token</label>
       <input id="fToken" type="password" spellcheck="false" placeholder="github_pat_…">
+      <label class="schalter" style="margin-top:12px">
+        <input type="checkbox" id="fMerken" checked>
+        Token auf diesem Gerät merken
+      </label>
+      <p class="dim" style="margin:4px 0 0">
+        Ausgeschaltet gilt es nur, bis du den Tab schließt – sinnvoll auf fremden Geräten.
+      </p>
       <div class="knopfzeile">
         <button id="bVerbinden">Verbinden</button>
         <button id="bVergessen" class="geist">Token löschen</button>
